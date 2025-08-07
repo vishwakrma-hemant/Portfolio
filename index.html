@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Montserrat', sans-serif;
         }
         
         :root {
@@ -23,8 +24,8 @@
         
         body {
             line-height: 1.6;
-            color: var(--dark-color);
-            background-color: var(--light-color);
+            color: #fff;
+            background-color: #000;
         }
         
         a {
@@ -59,6 +60,13 @@
             height: 4px;
             background: var(--secondary-color);
             margin: 15px auto;
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        
+        .section.in-view .section-title::after {
+            transform: scaleX(1);
         }
         
         .btn {
@@ -79,11 +87,18 @@
         
         /* Header */
         header {
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: #111;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: fixed;
             width: 100%;
             z-index: 100;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        header.scrolled {
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         
         nav {
@@ -111,7 +126,29 @@
         .nav-links a {
             color: var(--primary-color);
             font-weight: 500;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--secondary-color);
         }
         
         .nav-links a:hover {
@@ -127,6 +164,50 @@
             color: white;
             text-align: center;
             padding-top: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/957394a9-f338-4da7-ae78-9106b7494678.png') center/cover;
+            opacity: 0.1;
+            z-index: 0;
+            animation: pulse 18s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            animation: fadeInDown 1s ease both;
+        }
+
+        .hero-content p {
+            animation: fadeIn 1s 0.3s ease both;
+        }
+
+        @keyframes fadeInDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-40px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .hero-content {
@@ -159,6 +240,9 @@
             flex: 1;
             border-radius: 10px;
             overflow: hidden;
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
         }
         
         .about-img img {
@@ -168,12 +252,25 @@
             transition: transform 0.5s ease;
         }
         
+        .about-content.in-view .about-img {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
         .about-img img:hover {
             transform: scale(1.05);
         }
         
         .about-text {
             flex: 1;
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.2s;
+        }
+        
+        .about-content.in-view .about-text {
+            opacity: 1;
+            transform: translateX(0);
         }
         
         /* Projects Section */
@@ -196,7 +293,8 @@
         }
         
         .project-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-10px) rotate(1deg);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
         }
         
         .project-img {
@@ -209,6 +307,15 @@
             height: 100%;
             object-fit: cover;
             transition: transform 0.5s ease;
+            transform: translateX(-100%);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s;
+        }
+        
+        .project-card.in-view .project-img img,
+        .project-card:hover .project-img img {
+            transform: translateX(0);
+            opacity: 1;
         }
         
         .project-card:hover .project-img img {
@@ -449,15 +556,61 @@
     </footer>
 
     <script>
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Nav link highlighting
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.nav-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (pageYOffset >= (sectionTop - sectionHeight/3)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${current}`) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                
                 document.querySelector(this.getAttribute('href')).scrollIntoView({
                     behavior: 'smooth'
                 });
             });
+        });
+
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('section, .project-card, .about-content').forEach(element => {
+            observer.observe(element);
         });
         
         // Form submission handling
